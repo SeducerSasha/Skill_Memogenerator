@@ -44,10 +44,45 @@ class CreateMemeBloc {
   Stream<MemeText?> observeSelectedMemeText() =>
       selectedMemeTextsSubject.distinct();
 
+  Stream<List<MemeTextWithSelection>> observeMemeTextWithSelection() {
+    return Rx.combineLatest2<List<MemeText>, MemeText?,
+            List<MemeTextWithSelection>>(
+        observeMemeTexts(), observeSelectedMemeText(),
+        (memeTexts, selectedMemeText) {
+      return memeTexts.map((memeText) {
+        return MemeTextWithSelection(
+            memeText: memeText, selected: memeText.id == selectedMemeText?.id);
+      }).toList();
+    });
+  }
+
   void dispose() {
     memeTextsSubject.close();
     selectedMemeTextsSubject.close();
   }
+}
+
+class MemeTextWithSelection {
+  final MemeText memeText;
+  final bool selected;
+  const MemeTextWithSelection({
+    required this.memeText,
+    required this.selected,
+  });
+
+  @override
+  bool operator ==(covariant MemeTextWithSelection other) {
+    if (identical(this, other)) return true;
+
+    return other.memeText == memeText && other.selected == selected;
+  }
+
+  @override
+  int get hashCode => memeText.hashCode ^ selected.hashCode;
+
+  @override
+  String toString() =>
+      'MemeTextWithSelection(memeText: $memeText, selected: $selected)';
 }
 
 class MemeText {
